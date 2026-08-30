@@ -69,3 +69,14 @@ npm run package
 ```
 
 `npm run package` produces a self-contained `.vsix` with the bundled Language Client runtime.
+
+## Releases
+
+Set the desired version in `package.json`, commit it, and push a matching version tag:
+
+```text
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Tags in the `vMAJOR.MINOR.PATCH` format trigger GitHub Actions. The workflow runs the tests, builds the extension, creates a GitHub Release with generated release notes, and attaches the resulting `.vsix` file. The tag must match the version in `package.json`.

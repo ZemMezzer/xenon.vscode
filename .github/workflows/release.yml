@@ -1,0 +1,75 @@
+name: Release VS Code extension
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish VSIX
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify tag matches package version
+        shell: bash
+        run: |
+          package_version="$(node -p "require('./package.json').version")"
+          expected_tag="v${package_version}"
+
+          if [[ "${GITHUB_REF_NAME}" != "${expected_tag}" ]]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package.json version ${package_version}."
+            echo "Create the tag ${expected_tag}, or update package.json before tagging."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build, test, and package extension
+        run: npm run package
+
+      - name: Find VSIX package
+        id: package
+        shell: bash
+        run: |
+          shopt -s nullglob
+          packages=(./*.vsix)
+
+          if (( ${#packages[@]} != 1 )); then
+            echo "Expected exactly one VSIX package, found ${#packages[@]}."
+            exit 1
+          fi
+
+          echo "path=${packages[0]}" >> "${GITHUB_OUTPUT}"
+          echo "name=$(basename "${packages[0]}")" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.name }}
+          path: ${{ steps.package.outputs.path }}
+          if-no-files-found: error
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "${GITHUB_REF_NAME}"
+          "${{ steps.package.outputs.path }}"
+          --verify-tag
+          --generate-notes
+          --title "Xenon for VS Code ${GITHUB_REF_NAME}"

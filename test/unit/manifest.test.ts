@@ -52,6 +52,16 @@ test("extension manifest wires the production bundle and required contributions"
   assert.equal(xenon.extensions.includes(".xeproj"), false);
   assert.equal(xenon.extensions.includes(".xws"), false);
 
+  const xenonProject = manifest.contributes.languages.find((language) => language.id === "xenon-project");
+  assert.ok(xenonProject);
+  assert.deepEqual(xenonProject.extensions, [".xeproj"]);
+  assert.deepEqual(xenonProject.icon, xenon.icon);
+
+  const xenonWorkspace = manifest.contributes.languages.find((language) => language.id === "xenon-workspace");
+  assert.ok(xenonWorkspace);
+  assert.deepEqual(xenonWorkspace.extensions, [".xws"]);
+  assert.deepEqual(xenonWorkspace.icon, xenon.icon);
+
   assert.ok(manifest.contributes.grammars.some((grammar) =>
     grammar.language === "xenon" && grammar.path === "./syntaxes/xenon.tmLanguage.json"));
   const commands = new Set(manifest.contributes.commands.map((command) => command.command));

@@ -1,9 +1,9 @@
 {
   "name": "xenon",
   "displayName": "Xenon",
-  "description": "Language support for Xenon powered by the Xenon Language Server.",
+  "description": "Xenon Language support for VSCode.",
   "version": "0.1.0",
-  "publisher": "zemmezzer",
+  "publisher": "Tired Siren",
   "license": "MIT",
   "icon": "resources/xenon.png",
   "repository": {
@@ -27,12 +27,9 @@
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
-    "onLanguage:xenon",
     "workspaceContains:**/*.xe",
     "workspaceContains:**/*.xeproj",
-    "workspaceContains:**/*.xws",
-    "onCommand:xenon.restartLanguageServer",
-    "onCommand:xenon.showLanguageServerOutput"
+    "workspaceContains:**/*.xws"
   ],
   "contributes": {
     "languages": [
@@ -46,6 +43,32 @@
           ".xe"
         ],
         "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./resources/xenon.png",
+          "dark": "./resources/xenon.png"
+        }
+      },
+      {
+        "id": "xenon-project",
+        "aliases": [
+          "Xenon Project"
+        ],
+        "extensions": [
+          ".xeproj"
+        ],
+        "icon": {
+          "light": "./resources/xenon.png",
+          "dark": "./resources/xenon.png"
+        }
+      },
+      {
+        "id": "xenon-workspace",
+        "aliases": [
+          "Xenon Workspace"
+        ],
+        "extensions": [
+          ".xws"
+        ],
         "icon": {
           "light": "./resources/xenon.png",
           "dark": "./resources/xenon.png"
