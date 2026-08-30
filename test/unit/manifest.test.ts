@@ -102,8 +102,20 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   assert.doesNotThrow(() => new RegExp(configuration.indentationRules.decreaseIndentPattern));
   assert.doesNotThrow(() => new RegExp(configuration.wordPattern));
 
-  const grammar = readJson<{ readonly scopeName: string }>("syntaxes/xenon.tmLanguage.json");
+  const grammar = readJson<{
+    readonly scopeName: string;
+    readonly repository: Readonly<Record<string, { readonly name?: string; readonly match?: string }>>;
+  }>("syntaxes/xenon.tmLanguage.json");
   assert.equal(grammar.scopeName, "source.xenon");
+  const valueKeywords = grammar.repository["value-keywords"];
+  assert.equal(valueKeywords?.name, "storage.modifier.xenon");
+  assert.ok(valueKeywords?.match);
+  const valueKeywordPattern = new RegExp(valueKeywords.match);
+  for (const keyword of [
+    "new", "free", "this", "base", "get", "sizeof", "alignof", "offsetof", "cast", "bitcast"
+  ]) {
+    assert.match(keyword, valueKeywordPattern);
+  }
 });
 
 test("release root metadata and packaging exclusions are internally consistent", () => {

@@ -28,7 +28,7 @@
       "include": "#declaration-keywords"
     },
     {
-      "include": "#expression-keywords"
+      "include": "#value-keywords"
     },
     {
       "include": "#operators"
@@ -111,13 +111,13 @@
         },
         {
           "name": "keyword.declaration.xenon",
-          "match": "\\b(?:namespace|struct|interface|enum|get|set)\\b"
+          "match": "\\b(?:namespace|struct|interface|enum|set)\\b"
         }
       ]
     },
-    "expression-keywords": {
-      "name": "keyword.operator.word.xenon",
-      "match": "\\b(?:base|this|sizeof|alignof|offsetof|cast|bitcast|new|free)\\b"
+    "value-keywords": {
+      "name": "storage.modifier.xenon",
+      "match": "\\b(?:new|free|this|base|get|sizeof|alignof|offsetof|cast|bitcast)\\b"
     },
     "operators": {
       "name": "keyword.operator.xenon",
