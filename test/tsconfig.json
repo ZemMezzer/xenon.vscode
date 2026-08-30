@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": ".",
+    "outDir": "../dist-test",
+    "types": [
+      "node",
+      "vscode"
+    ]
+  },
+  "include": [
+    "runTest.ts",
+    "runDevelopmentTest.ts",
+    "runInstalledTest.ts",
+    "suite/**/*.ts"
+  ]
+}
