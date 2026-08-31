@@ -3,7 +3,7 @@
   "displayName": "Xenon",
   "description": "Xenon Language support for VSCode.",
   "version": "0.1.0",
-  "publisher": "Tired Siren",
+  "publisher": "zem",
   "license": "MIT",
   "icon": "resources/xenon.png",
   "repository": {
@@ -27,9 +27,12 @@
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
+    "onLanguage:xenon",
     "workspaceContains:**/*.xe",
     "workspaceContains:**/*.xeproj",
-    "workspaceContains:**/*.xws"
+    "workspaceContains:**/*.xws",
+    "onCommand:xenon.restartLanguageServer",
+    "onCommand:xenon.showLanguageServerOutput"
   ],
   "contributes": {
     "languages": [

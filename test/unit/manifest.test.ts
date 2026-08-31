@@ -30,8 +30,8 @@ interface ExtensionManifest {
 test("extension manifest wires the production bundle and required contributions", () => {
   const manifest = readJson<ExtensionManifest>("package.json");
   assert.equal(manifest.name, "xenon");
-  assert.equal(manifest.version, "0.1.0");
-  assert.equal(manifest.publisher, "zemmezzer");
+  assert.match(manifest.version, /^\d+\.\d+\.\d+$/);
+  assert.equal(manifest.publisher, "zem");
   assert.equal(manifest.license, "MIT");
   assert.equal(manifest.icon, "resources/xenon.png");
   assert.deepEqual(manifest.repository, {

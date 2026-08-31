@@ -3,7 +3,7 @@ name: Release VS Code extension
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "*.*.*"
 
 permissions:
   contents: write
@@ -24,26 +24,32 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Verify tag matches package version
+      - name: Read version from tag
+        id: version
         shell: bash
         run: |
-          package_version="$(node -p "require('./package.json').version")"
-          expected_tag="v${package_version}"
-
-          if [[ "${GITHUB_REF_NAME}" != "${expected_tag}" ]]; then
-            echo "Tag ${GITHUB_REF_NAME} does not match package.json version ${package_version}."
-            echo "Create the tag ${expected_tag}, or update package.json before tagging."
+          version="${GITHUB_REF_NAME}"
+          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tags must use MAJOR.MINOR.PATCH, for example 0.1.0."
             exit 1
           fi
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Set extension version from tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: npm version "${VERSION}" --no-git-tag-version --allow-same-version
 
       - name: Build, test, and package extension
         run: npm run package
 
       - name: Find VSIX package
         id: package
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         shell: bash
         run: |
           shopt -s nullglob
@@ -51,6 +57,12 @@ jobs:
 
           if (( ${#packages[@]} != 1 )); then
             echo "Expected exactly one VSIX package, found ${#packages[@]}."
+            exit 1
+          fi
+
+          expected="./xenon-${VERSION}.vsix"
+          if [[ "${packages[0]}" != "${expected}" ]]; then
+            echo "Expected package ${expected}, found ${packages[0]}."
             exit 1
           fi
 
@@ -64,12 +76,20 @@ jobs:
           path: ${{ steps.package.outputs.path }}
           if-no-files-found: error
 
-      - name: Create GitHub release
+      - name: Create or update GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create "${GITHUB_REF_NAME}"
-          "${{ steps.package.outputs.path }}"
-          --verify-tag
-          --generate-notes
-          --title "Xenon for VS Code ${GITHUB_REF_NAME}"
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" "${{ steps.package.outputs.path }}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" "${{ steps.package.outputs.path }}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --verify-tag \
+              --generate-notes \
+              --title "Xenon for VS Code ${VERSION}"
+          fi

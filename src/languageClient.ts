@@ -475,7 +475,7 @@ export class XenonLanguageClientManager implements vscode.Disposable {
     if (action === OPEN_SETTINGS) {
       await vscode.commands.executeCommand(
         "workbench.action.openSettings",
-        "@ext:zemmezzer.xenon xenon.executablePath"
+        "@ext:zem.xenon xenon.executablePath"
       );
     } else if (action === SHOW_OUTPUT) {
       this.showOutput();

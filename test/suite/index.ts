@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as vscode from "vscode";
 
-const EXTENSION_ID = "zemmezzer.xenon";
+const EXTENSION_ID = "zem.xenon";
 const scenario = process.env.XENON_TEST_SCENARIO;
 interface TestPaths {
   readonly root: string;
