@@ -14,6 +14,7 @@ The installed extension does not require a separate Node.js, npm, TypeScript, or
 ## Features
 
 - Lexical and semantic syntax highlighting.
+- Preview highlighting, completion, hover and definition support for generic parameters, open and nested generic struct references, concrete generic-function and generic-struct specializations, `where` constraints and structural `template` declarations.
 - Diagnostics.
 - Hover information.
 - Completion and signature help.

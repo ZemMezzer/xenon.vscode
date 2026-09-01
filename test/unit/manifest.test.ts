@@ -27,6 +27,16 @@ interface ExtensionManifest {
   };
 }
 
+interface GrammarRule {
+  readonly name?: string;
+  readonly match?: string;
+  readonly begin?: string;
+  readonly beginCaptures?: Readonly<Record<string, { readonly name?: string }>>;
+  readonly end?: string;
+  readonly include?: string;
+  readonly patterns?: readonly GrammarRule[];
+}
+
 test("extension manifest wires the production bundle and required contributions", () => {
   const manifest = readJson<ExtensionManifest>("package.json");
   assert.equal(manifest.name, "xenon");
@@ -114,7 +124,7 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
 
   const grammar = readJson<{
     readonly scopeName: string;
-    readonly repository: Readonly<Record<string, { readonly name?: string; readonly match?: string }>>;
+    readonly repository: Readonly<Record<string, GrammarRule>>;
   }>("syntaxes/xenon.tmLanguage.json");
   assert.equal(grammar.scopeName, "source.xenon");
   const valueKeywords = grammar.repository["value-keywords"];
@@ -122,10 +132,32 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   assert.ok(valueKeywords?.match);
   const valueKeywordPattern = new RegExp(valueKeywords.match);
   for (const keyword of [
-    "new", "free", "this", "base", "get", "sizeof", "alignof", "offsetof", "cast", "bitcast"
+    "new", "free", "this", "base", "get", "set", "sizeof", "alignof", "offsetof", "cast", "bitcast"
   ]) {
     assert.match(keyword, valueKeywordPattern);
   }
+  const declarationPatterns = grammar.repository["declaration-keywords"]?.patterns ?? [];
+  const declarationPattern = new RegExp(declarationPatterns
+    .find((pattern) => pattern.name === "keyword.declaration.xenon")?.match ?? "(?!)");
+  const constraintPattern = new RegExp(declarationPatterns
+    .find((pattern) => pattern.name === "keyword.declaration.constraint.xenon")?.match ?? "(?!)");
+  assert.match("template", declarationPattern);
+  assert.doesNotMatch("set", declarationPattern);
+  assert.match("where", constraintPattern);
+
+  const genericTypes = grammar.repository["generic-types"];
+  assert.equal(genericTypes?.name, "entity.name.type.struct.xenon");
+  assert.match("List<int>", new RegExp(genericTypes?.match ?? "(?!)"));
+
+  const contextual = grammar.repository["contextual-identifiers"]?.patterns ?? [];
+  const thisRule = contextual.find((pattern) => pattern.name === "storage.modifier.xenon");
+  assert.match("this", new RegExp(thisRule?.match ?? "(?!)"));
+  const setter = contextual.find((pattern) => pattern.name === "meta.accessor.setter.xenon");
+  assert.match("set {", new RegExp(setter?.begin ?? "(?!)"));
+  assert.equal(setter?.beginCaptures?.["1"]?.name, "storage.modifier.xenon");
+  const setterValue = setter?.patterns?.find(
+    (pattern) => pattern.name === "storage.modifier.xenon");
+  assert.match("value", new RegExp(setterValue?.match ?? "(?!)"));
 });
 
 test("release root metadata and packaging exclusions are internally consistent", () => {

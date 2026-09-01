@@ -16,6 +16,12 @@
       "include": "#language-constants"
     },
     {
+      "include": "#contextual-identifiers"
+    },
+    {
+      "include": "#generic-types"
+    },
+    {
       "include": "#types"
     },
     {
@@ -91,6 +97,77 @@
       "name": "constant.language.xenon",
       "match": "\\b(?:true|false|null)\\b"
     },
+    "contextual-identifiers": {
+      "patterns": [
+        {
+          "name": "storage.modifier.xenon",
+          "match": "\\bthis\\b"
+        },
+        {
+          "name": "meta.accessor.setter.xenon",
+          "begin": "\\b(set)\\b\\s*(\\{)",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.modifier.xenon"
+            },
+            "2": {
+              "name": "punctuation.section.group.begin.xenon"
+            }
+          },
+          "end": "(\\})",
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.section.group.end.xenon"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#strings"
+            },
+            {
+              "name": "storage.modifier.xenon",
+              "match": "\\bvalue\\b"
+            },
+            {
+              "include": "#setter-braces"
+            },
+            {
+              "include": "$self"
+            }
+          ]
+        }
+      ]
+    },
+    "setter-braces": {
+      "name": "meta.block.setter.xenon",
+      "begin": "\\{",
+      "end": "\\}",
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "name": "storage.modifier.xenon",
+          "match": "\\bvalue\\b"
+        },
+        {
+          "include": "#setter-braces"
+        },
+        {
+          "include": "$self"
+        }
+      ]
+    },
+    "generic-types": {
+      "name": "entity.name.type.struct.xenon",
+      "match": "\\b[A-Z][A-Za-z0-9_]*(?=\\s*<)"
+    },
     "types": {
       "name": "storage.type.primitive.xenon",
       "match": "\\b(?:void|bool|byte|sbyte|short|ushort|int|uint|long|ulong|float|double|nint|nuint|clong|culong)\\b"
@@ -111,13 +188,17 @@
         },
         {
           "name": "keyword.declaration.xenon",
-          "match": "\\b(?:namespace|struct|interface|enum|set)\\b"
+          "match": "\\b(?:namespace|struct|interface|template|enum)\\b"
+        },
+        {
+          "name": "keyword.declaration.constraint.xenon",
+          "match": "\\bwhere\\b"
         }
       ]
     },
     "value-keywords": {
       "name": "storage.modifier.xenon",
-      "match": "\\b(?:new|free|this|base|get|sizeof|alignof|offsetof|cast|bitcast)\\b"
+      "match": "\\b(?:new|free|this|base|get|set|sizeof|alignof|offsetof|cast|bitcast)\\b"
     },
     "operators": {
       "name": "keyword.operator.xenon",
