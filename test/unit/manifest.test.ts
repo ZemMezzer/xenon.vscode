@@ -136,6 +136,19 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   ]) {
     assert.match(keyword, valueKeywordPattern);
   }
+  const ownershipKeywords = grammar.repository["ownership-keywords"];
+  const ownershipPatterns = ownershipKeywords?.patterns ?? [];
+  assert.equal(ownershipPatterns.length, 2);
+  assert.ok(ownershipPatterns.every((pattern) => pattern.name === valueKeywords.name));
+  const movePattern = ownershipPatterns.find((pattern) => pattern.match === "\\bmove\\b");
+  const ownershipPattern = ownershipPatterns.find((pattern) => pattern.match?.includes("unique|shared|weak"));
+  assert.match("move", new RegExp(movePattern?.match ?? "(?!)"));
+  for (const ownershipType of ["unique<Resource>", "shared<Resource>", "weak<Resource>"]) {
+    assert.match(ownershipType, new RegExp(ownershipPattern?.match ?? "(?!)"));
+  }
+  for (const identifier of ["uniquely", "sharedState", "weakness"]) {
+    assert.doesNotMatch(identifier, new RegExp(ownershipPattern?.match ?? "(?!)"));
+  }
   const declarationPatterns = grammar.repository["declaration-keywords"]?.patterns ?? [];
   const declarationPattern = new RegExp(declarationPatterns
     .find((pattern) => pattern.name === "keyword.declaration.xenon")?.match ?? "(?!)");
@@ -202,6 +215,22 @@ test("release root metadata and packaging exclusions are internally consistent",
   ]) {
     assert.ok(ignore.split(/\r?\n/).includes(exclusion), `${exclusion} must be excluded from VSIX`);
   }
+});
+
+test("README describes current relocation, move effect, and reference lifetime semantics", () => {
+  const readme = readFileSync("README.md", "utf8");
+  assert.match(readme, /relocation/i);
+  assert.match(readme, /Ordinary arrays can be moved/);
+  assert.match(readme, /callee-stack-backed/);
+  assert.doesNotMatch(readme, /ordinary array move is deferred/i);
+  assert.match(readme, /Every reachable exit must agree/);
+  assert.match(readme, /interface\/virtual dispatch cannot hide a move effect/);
+  assert.match(readme, /final resolved implementation/);
+  assert.match(readme, /inherited and multi-level interface implementations/);
+  assert.match(readme, /passing a local, its field, a by-value parameter, or a temporary through one or more forwarding calls cannot make it escape safely/);
+  assert.match(readme, /Reference-return provenance is composed transitively/);
+  assert.match(readme, /Ownership wrappers support struct, array, and primitive pointees/);
+  assert.match(readme, /cannot bypass a private destructor/);
 });
 
 function readJson<T>(path: string): T {

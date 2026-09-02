@@ -37,6 +37,9 @@
       "include": "#value-keywords"
     },
     {
+      "include": "#ownership-keywords"
+    },
+    {
       "include": "#operators"
     },
     {
@@ -199,6 +202,18 @@
     "value-keywords": {
       "name": "storage.modifier.xenon",
       "match": "\\b(?:new|free|this|base|get|set|sizeof|alignof|offsetof|cast|bitcast)\\b"
+    },
+    "ownership-keywords": {
+      "patterns": [
+        {
+          "name": "storage.modifier.xenon",
+          "match": "\\bmove\\b"
+        },
+        {
+          "name": "storage.modifier.xenon",
+          "match": "\\b(?:unique|shared|weak)(?=\\s*<)"
+        }
+      ]
     },
     "operators": {
       "name": "keyword.operator.xenon",

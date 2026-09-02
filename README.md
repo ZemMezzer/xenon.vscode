@@ -14,6 +14,7 @@ The installed extension does not require a separate Node.js, npm, TypeScript, or
 ## Features
 
 - Lexical and semantic syntax highlighting.
+- Explicit `move` expression plus `unique<T>`, `shared<T>`, and `weak<T>` ownership-type highlighting; the current Xenon Language Server reports local/parameter/`this`-field use-after-move, stable interprocedural receiver-field effects, hidden interface/virtual effects, known-alias invalidation, restoration, escaping local reference returns, destructor restrictions, generic copyability, weak-access safety, and ownership-aware copy/destruction behavior.
 - Preview highlighting, completion, hover and definition support for generic parameters, open and nested generic struct references, concrete generic-function and generic-struct specializations, `where` constraints and structural `template` declarations.
 - Diagnostics.
 - Hover information.
@@ -25,6 +26,12 @@ The installed extension does not require a separate Node.js, npm, TypeScript, or
 - Live synchronization of `.xe`, `.xeproj`, and `.xws` changes.
 
 Semantic editor intelligence comes from `xenon lsp`; the extension does not duplicate compiler or project-system logic.
+
+`move` is a lifetime transfer, while **relocation** is the physical strategy used by the compiler. Ordinary arrays can be moved: heap arrays transfer their handle, and stack arrays can relocate between compatible local lifetimes inside one function. Returning callee-stack-backed `T[]` remains an intentional lifetime/ABI error; heap-backed, `unique<T[]>`, and `shared<T[]>` results can be return-moved normally.
+
+Receiver fields moved by a method are reflected in the caller's semantic state. Every reachable exit must agree on that state, and interface/virtual dispatch cannot hide a move effect until Xenon gains explicit effect syntax. Contract validation uses the final resolved implementation, including inherited and multi-level interface implementations and generic struct specializations. Reference-return provenance is composed transitively through calls and generic specializations: forwarding caller-owned `T&`/`readonly T&` is valid, while passing a local, its field, a by-value parameter, or a temporary through one or more forwarding calls cannot make it escape safely. Unknown extern or polymorphic provenance is rejected conservatively.
+
+Ownership wrappers support struct, array, and primitive pointees. For example, `unique<int> value = new int(42)` and `shared<byte> value = new byte()` own heap scalars, `*value` accesses them, and `weak<T>` observes a matching `shared<T>`. Owning operations also require the pointee's complete recursive destructor path to be accessible, so a generated ownership destructor cannot bypass a private destructor.
 
 ## Workspaces
 
