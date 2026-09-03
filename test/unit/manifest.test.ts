@@ -20,6 +20,10 @@ interface ExtensionManifest {
       readonly icon: { readonly light: string; readonly dark: string };
     }[];
     readonly grammars: readonly { readonly language: string; readonly path: string }[];
+    readonly semanticTokenScopes: readonly {
+      readonly language: string;
+      readonly scopes: Readonly<Record<string, readonly string[]>>;
+    }[];
     readonly commands: readonly { readonly command: string }[];
     readonly configuration: {
       readonly properties: Readonly<Record<string, { readonly type: string; readonly default: unknown }>>;
@@ -74,6 +78,13 @@ test("extension manifest wires the production bundle and required contributions"
 
   assert.ok(manifest.contributes.grammars.some((grammar) =>
     grammar.language === "xenon" && grammar.path === "./syntaxes/xenon.tmLanguage.json"));
+  const semanticScopes = manifest.contributes.semanticTokenScopes.find((entry) =>
+    entry.language === "xenon")?.scopes;
+  assert.deepEqual(semanticScopes, {
+    ownershipType: ["storage.type.ownership.xenon"],
+    valueExpression: ["keyword.operator.expression.xenon"],
+    lifetimeOperation: ["keyword.other.lifetime.xenon"]
+  });
   const commands = new Set(manifest.contributes.commands.map((command) => command.command));
   assert.ok(commands.has("xenon.restartLanguageServer"));
   assert.ok(commands.has("xenon.showLanguageServerOutput"));
@@ -127,28 +138,34 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
     readonly repository: Readonly<Record<string, GrammarRule>>;
   }>("syntaxes/xenon.tmLanguage.json");
   assert.equal(grammar.scopeName, "source.xenon");
-  const valueKeywords = grammar.repository["value-keywords"];
-  assert.equal(valueKeywords?.name, "storage.modifier.xenon");
-  assert.ok(valueKeywords?.match);
-  const valueKeywordPattern = new RegExp(valueKeywords.match);
-  for (const keyword of [
-    "new", "free", "this", "base", "get", "set", "sizeof", "alignof", "offsetof", "cast", "bitcast"
-  ]) {
-    assert.match(keyword, valueKeywordPattern);
-  }
-  const ownershipKeywords = grammar.repository["ownership-keywords"];
-  const ownershipPatterns = ownershipKeywords?.patterns ?? [];
-  assert.equal(ownershipPatterns.length, 2);
-  assert.ok(ownershipPatterns.every((pattern) => pattern.name === valueKeywords.name));
-  const movePattern = ownershipPatterns.find((pattern) => pattern.match === "\\bmove\\b");
-  const ownershipPattern = ownershipPatterns.find((pattern) => pattern.match?.includes("unique|shared|weak"));
-  assert.match("move", new RegExp(movePattern?.match ?? "(?!)"));
-  for (const ownershipType of ["unique<Resource>", "shared<Resource>", "weak<Resource>"]) {
-    assert.match(ownershipType, new RegExp(ownershipPattern?.match ?? "(?!)"));
-  }
+  const expressionKeywords = grammar.repository["expression-keywords"];
+  assert.equal(expressionKeywords?.name, "keyword.other.expression.xenon");
+  const expressionPattern = new RegExp(expressionKeywords?.match ?? "(?!)");
+  for (const keyword of ["this", "base", "get", "set", "sizeof", "alignof", "offsetof", "cast", "bitcast"])
+    assert.match(keyword, expressionPattern);
+
+  const ownershipKeywords = grammar.repository["ownership-type-keywords"];
+  assert.equal(ownershipKeywords?.name, "storage.type.ownership.xenon");
+  const ownershipPattern = new RegExp(ownershipKeywords?.match ?? "(?!)");
+  for (const ownershipType of [
+    "unique<Resource>", "shared<Resource>", "weak<Resource>", "storage<Resource>", "pin<Resource>"
+  ])
+    assert.match(ownershipType, ownershipPattern);
   for (const identifier of ["uniquely", "sharedState", "weakness"]) {
-    assert.doesNotMatch(identifier, new RegExp(ownershipPattern?.match ?? "(?!)"));
+    assert.doesNotMatch(identifier, ownershipPattern);
   }
+
+  const valueProducingKeywords = grammar.repository["value-producing-keywords"];
+  assert.equal(valueProducingKeywords?.name, "keyword.operator.expression.xenon");
+  const valueProducingPattern = new RegExp(valueProducingKeywords?.match ?? "(?!)");
+  for (const keyword of ["new", "move", "lock"])
+    assert.match(keyword, valueProducingPattern);
+
+  const lifetimeOperations = grammar.repository["lifetime-operation-keywords"];
+  assert.equal(lifetimeOperations?.name, "keyword.other.lifetime.xenon");
+  const lifetimeOperationPattern = new RegExp(lifetimeOperations?.match ?? "(?!)");
+  for (const keyword of ["free", "destruct"])
+    assert.match(keyword, lifetimeOperationPattern);
   const declarationPatterns = grammar.repository["declaration-keywords"]?.patterns ?? [];
   const declarationPattern = new RegExp(declarationPatterns
     .find((pattern) => pattern.name === "keyword.declaration.xenon")?.match ?? "(?!)");

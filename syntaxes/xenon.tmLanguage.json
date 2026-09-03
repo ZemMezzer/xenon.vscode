@@ -34,10 +34,16 @@
       "include": "#declaration-keywords"
     },
     {
-      "include": "#value-keywords"
+      "include": "#expression-keywords"
     },
     {
-      "include": "#ownership-keywords"
+      "include": "#ownership-type-keywords"
+    },
+    {
+      "include": "#value-producing-keywords"
+    },
+    {
+      "include": "#lifetime-operation-keywords"
     },
     {
       "include": "#operators"
@@ -199,21 +205,21 @@
         }
       ]
     },
-    "value-keywords": {
-      "name": "storage.modifier.xenon",
-      "match": "\\b(?:new|free|this|base|get|set|sizeof|alignof|offsetof|cast|bitcast)\\b"
+    "expression-keywords": {
+      "name": "keyword.other.expression.xenon",
+      "match": "\\b(?:this|base|get|set|sizeof|alignof|offsetof|cast|bitcast)\\b"
     },
-    "ownership-keywords": {
-      "patterns": [
-        {
-          "name": "storage.modifier.xenon",
-          "match": "\\bmove\\b"
-        },
-        {
-          "name": "storage.modifier.xenon",
-          "match": "\\b(?:unique|shared|weak)(?=\\s*<)"
-        }
-      ]
+    "ownership-type-keywords": {
+      "name": "storage.type.ownership.xenon",
+      "match": "\\b(?:unique|shared|weak|storage|pin)(?=\\s*<)"
+    },
+    "value-producing-keywords": {
+      "name": "keyword.operator.expression.xenon",
+      "match": "\\b(?:new|move|lock)\\b"
+    },
+    "lifetime-operation-keywords": {
+      "name": "keyword.other.lifetime.xenon",
+      "match": "\\b(?:free|destruct)\\b"
     },
     "operators": {
       "name": "keyword.operator.xenon",

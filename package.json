@@ -85,6 +85,22 @@
         "path": "./syntaxes/xenon.tmLanguage.json"
       }
     ],
+    "semanticTokenScopes": [
+      {
+        "language": "xenon",
+        "scopes": {
+          "ownershipType": [
+            "storage.type.ownership.xenon"
+          ],
+          "valueExpression": [
+            "keyword.operator.expression.xenon"
+          ],
+          "lifetimeOperation": [
+            "keyword.other.lifetime.xenon"
+          ]
+        }
+      }
+    ],
     "configuration": {
       "title": "Xenon",
       "properties": {
