@@ -14,6 +14,7 @@ The installed extension does not require a separate Node.js, npm, TypeScript, or
 ## Features
 
 - Lexical and semantic syntax highlighting.
+- Concurrency syntax highlighting and Language Server intelligence for `atomic<T>`, `threadlocal`, atomic exchange (`<->`), and compare-exchange (`value : expected --> desired`).
 - Explicit `move` and `lock` expressions plus `unique<T>`, `shared<T>`, and `weak<T>` ownership-type highlighting; the current Xenon Language Server reports local/parameter/`this`-field use-after-move, stable interprocedural receiver-field effects, hidden interface/virtual effects, known-alias invalidation, restoration, escaping local reference returns, destructor restrictions, generic copyability, weak-access safety, and ownership-aware copy/destruction behavior.
 - Preview highlighting, completion, hover and definition support for generic parameters, open and nested generic struct references, concrete generic-function and generic-struct specializations, `where` constraints and structural `template` declarations.
 - Diagnostics.

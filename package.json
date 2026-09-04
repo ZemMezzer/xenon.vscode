@@ -89,14 +89,32 @@
       {
         "language": "xenon",
         "scopes": {
-          "ownershipType": [
-            "storage.type.ownership.xenon"
+          "modifier": [
+            "storage.modifier.declaration.xenon"
           ],
-          "valueExpression": [
-            "keyword.operator.expression.xenon"
+          "controlKeyword": [
+            "storage.modifier.control.xenon"
+          ],
+          "declarationKeyword": [
+            "storage.modifier.declaration.xenon"
+          ],
+          "expressionKeyword": [
+            "storage.modifier.expression.xenon"
+          ],
+          "baseTypeKeyword": [
+            "storage.modifier.base-types.xenon"
+          ],
+          "literalKeyword": [
+            "storage.modifier.literal.xenon"
+          ],
+          "typeKeyword": [
+            "storage.modifier.type-forming.xenon"
+          ],
+          "valueKeyword": [
+            "storage.modifier.value-forming.xenon"
           ],
           "lifetimeOperation": [
-            "keyword.other.lifetime.xenon"
+            "storage.modifier.lifetime.xenon"
           ]
         }
       }

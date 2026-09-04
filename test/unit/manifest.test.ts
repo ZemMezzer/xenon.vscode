@@ -81,9 +81,15 @@ test("extension manifest wires the production bundle and required contributions"
   const semanticScopes = manifest.contributes.semanticTokenScopes.find((entry) =>
     entry.language === "xenon")?.scopes;
   assert.deepEqual(semanticScopes, {
-    ownershipType: ["storage.type.ownership.xenon"],
-    valueExpression: ["keyword.operator.expression.xenon"],
-    lifetimeOperation: ["keyword.other.lifetime.xenon"]
+    modifier: ["storage.modifier.declaration.xenon"],
+    controlKeyword: ["storage.modifier.control.xenon"],
+    declarationKeyword: ["storage.modifier.declaration.xenon"],
+    expressionKeyword: ["storage.modifier.expression.xenon"],
+    baseTypeKeyword: ["storage.modifier.base-types.xenon"],
+    literalKeyword: ["storage.modifier.literal.xenon"],
+    typeKeyword: ["storage.modifier.type-forming.xenon"],
+    valueKeyword: ["storage.modifier.value-forming.xenon"],
+    lifetimeOperation: ["storage.modifier.lifetime.xenon"]
   });
   const commands = new Set(manifest.contributes.commands.map((command) => command.command));
   assert.ok(commands.has("xenon.restartLanguageServer"));
@@ -138,39 +144,75 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
     readonly repository: Readonly<Record<string, GrammarRule>>;
   }>("syntaxes/xenon.tmLanguage.json");
   assert.equal(grammar.scopeName, "source.xenon");
+  const baseTypes = grammar.repository["types"];
+  assert.equal(baseTypes?.name, "storage.modifier.base-types.xenon");
+  const baseTypePattern = new RegExp(baseTypes?.match ?? "(?!)");
+  for (const type of [
+    "void", "bool", "byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong",
+    "float", "double", "nint", "nuint", "clong", "culong"
+  ])
+    assert.match(type, baseTypePattern);
+
+  const literalKeywords = grammar.repository["language-constants"];
+  assert.equal(literalKeywords?.name, "storage.modifier.literal.xenon");
+  const literalKeywordPattern = new RegExp(literalKeywords?.match ?? "(?!)");
+  for (const keyword of ["true", "false", "null"])
+    assert.match(keyword, literalKeywordPattern);
+
   const expressionKeywords = grammar.repository["expression-keywords"];
-  assert.equal(expressionKeywords?.name, "keyword.other.expression.xenon");
+  assert.equal(expressionKeywords?.name, "storage.modifier.expression.xenon");
   const expressionPattern = new RegExp(expressionKeywords?.match ?? "(?!)");
   for (const keyword of ["this", "base", "get", "set", "sizeof", "alignof", "offsetof", "cast", "bitcast"])
     assert.match(keyword, expressionPattern);
 
-  const ownershipKeywords = grammar.repository["ownership-type-keywords"];
-  assert.equal(ownershipKeywords?.name, "storage.type.ownership.xenon");
-  const ownershipPattern = new RegExp(ownershipKeywords?.match ?? "(?!)");
-  for (const ownershipType of [
-    "unique<Resource>", "shared<Resource>", "weak<Resource>", "storage<Resource>", "pin<Resource>"
+  const typeFormingKeywords = grammar.repository["type-forming-keywords"];
+  assert.equal(typeFormingKeywords?.name, "storage.modifier.type-forming.xenon");
+  const typeFormingPattern = new RegExp(typeFormingKeywords?.match ?? "(?!)");
+  for (const typeForm of [
+    "unique<Resource>", "shared<Resource>", "weak<Resource>", "storage<Resource>",
+    "pin<Resource>", "atomic<int>", "atomic <Snapshot>"
   ])
-    assert.match(ownershipType, ownershipPattern);
-  for (const identifier of ["uniquely", "sharedState", "weakness"]) {
-    assert.doesNotMatch(identifier, ownershipPattern);
+    assert.match(typeForm, typeFormingPattern);
+  for (const identifier of ["uniquely", "sharedState", "weakness", "atomicValue"]) {
+    assert.doesNotMatch(identifier, typeFormingPattern);
   }
 
-  const valueProducingKeywords = grammar.repository["value-producing-keywords"];
-  assert.equal(valueProducingKeywords?.name, "keyword.operator.expression.xenon");
-  const valueProducingPattern = new RegExp(valueProducingKeywords?.match ?? "(?!)");
+  const modifiers = grammar.repository["modifiers"];
+  assert.equal(modifiers?.name, "storage.modifier.declaration.xenon");
+  const modifierPattern = new RegExp(modifiers?.match ?? "(?!)");
+  assert.match("threadlocal", modifierPattern);
+  assert.doesNotMatch("threadlocalValue", modifierPattern);
+
+  const controlKeywords = grammar.repository["control-keywords"];
+  assert.equal(controlKeywords?.name, "storage.modifier.control.xenon");
+  const controlPattern = new RegExp(controlKeywords?.match ?? "(?!)");
+  for (const keyword of [
+    "switch", "case", "default", "if", "else", "while", "for", "break", "continue", "return"
+  ])
+    assert.match(keyword, controlPattern);
+
+  const operators = grammar.repository["operators"];
+  const operatorPattern = new RegExp(`^(?:${operators?.match ?? "(?!)"})$`);
+  for (const operator of ["<->", "-->"])
+    assert.match(operator, operatorPattern);
+
+  const valueFormingKeywords = grammar.repository["value-forming-keywords"];
+  assert.equal(valueFormingKeywords?.name, "storage.modifier.value-forming.xenon");
+  const valueFormingPattern = new RegExp(valueFormingKeywords?.match ?? "(?!)");
   for (const keyword of ["new", "move", "lock"])
-    assert.match(keyword, valueProducingPattern);
+    assert.match(keyword, valueFormingPattern);
 
   const lifetimeOperations = grammar.repository["lifetime-operation-keywords"];
-  assert.equal(lifetimeOperations?.name, "keyword.other.lifetime.xenon");
+  assert.equal(lifetimeOperations?.name, "storage.modifier.lifetime.xenon");
   const lifetimeOperationPattern = new RegExp(lifetimeOperations?.match ?? "(?!)");
   for (const keyword of ["free", "destruct"])
     assert.match(keyword, lifetimeOperationPattern);
   const declarationPatterns = grammar.repository["declaration-keywords"]?.patterns ?? [];
+  assert.ok(declarationPatterns.every(pattern => pattern.name?.startsWith("storage.modifier.declaration.")));
   const declarationPattern = new RegExp(declarationPatterns
-    .find((pattern) => pattern.name === "keyword.declaration.xenon")?.match ?? "(?!)");
+    .find((pattern) => pattern.name === "storage.modifier.declaration.type.xenon")?.match ?? "(?!)");
   const constraintPattern = new RegExp(declarationPatterns
-    .find((pattern) => pattern.name === "keyword.declaration.constraint.xenon")?.match ?? "(?!)");
+    .find((pattern) => pattern.name === "storage.modifier.declaration.constraint.xenon")?.match ?? "(?!)");
   assert.match("template", declarationPattern);
   assert.doesNotMatch("set", declarationPattern);
   assert.match("where", constraintPattern);
@@ -180,13 +222,13 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   assert.match("List<int>", new RegExp(genericTypes?.match ?? "(?!)"));
 
   const contextual = grammar.repository["contextual-identifiers"]?.patterns ?? [];
-  const thisRule = contextual.find((pattern) => pattern.name === "storage.modifier.xenon");
+  const thisRule = contextual.find((pattern) => pattern.name === "storage.modifier.expression.xenon");
   assert.match("this", new RegExp(thisRule?.match ?? "(?!)"));
   const setter = contextual.find((pattern) => pattern.name === "meta.accessor.setter.xenon");
   assert.match("set {", new RegExp(setter?.begin ?? "(?!)"));
-  assert.equal(setter?.beginCaptures?.["1"]?.name, "storage.modifier.xenon");
+  assert.equal(setter?.beginCaptures?.["1"]?.name, "storage.modifier.expression.xenon");
   const setterValue = setter?.patterns?.find(
-    (pattern) => pattern.name === "storage.modifier.xenon");
+    (pattern) => pattern.name === "storage.modifier.contextual-value.xenon");
   assert.match("value", new RegExp(setterValue?.match ?? "(?!)"));
 });
 

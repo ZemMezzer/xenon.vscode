@@ -37,10 +37,10 @@
       "include": "#expression-keywords"
     },
     {
-      "include": "#ownership-type-keywords"
+      "include": "#type-forming-keywords"
     },
     {
-      "include": "#value-producing-keywords"
+      "include": "#value-forming-keywords"
     },
     {
       "include": "#lifetime-operation-keywords"
@@ -103,13 +103,13 @@
       ]
     },
     "language-constants": {
-      "name": "constant.language.xenon",
+      "name": "storage.modifier.literal.xenon",
       "match": "\\b(?:true|false|null)\\b"
     },
     "contextual-identifiers": {
       "patterns": [
         {
-          "name": "storage.modifier.xenon",
+          "name": "storage.modifier.expression.xenon",
           "match": "\\bthis\\b"
         },
         {
@@ -117,7 +117,7 @@
           "begin": "\\b(set)\\b\\s*(\\{)",
           "beginCaptures": {
             "1": {
-              "name": "storage.modifier.xenon"
+              "name": "storage.modifier.expression.xenon"
             },
             "2": {
               "name": "punctuation.section.group.begin.xenon"
@@ -137,7 +137,7 @@
               "include": "#strings"
             },
             {
-              "name": "storage.modifier.xenon",
+              "name": "storage.modifier.contextual-value.xenon",
               "match": "\\bvalue\\b"
             },
             {
@@ -162,7 +162,7 @@
           "include": "#strings"
         },
         {
-          "name": "storage.modifier.xenon",
+          "name": "storage.modifier.contextual-value.xenon",
           "match": "\\bvalue\\b"
         },
         {
@@ -178,52 +178,52 @@
       "match": "\\b[A-Z][A-Za-z0-9_]*(?=\\s*<)"
     },
     "types": {
-      "name": "storage.type.primitive.xenon",
+      "name": "storage.modifier.base-types.xenon",
       "match": "\\b(?:void|bool|byte|sbyte|short|ushort|int|uint|long|ulong|float|double|nint|nuint|clong|culong)\\b"
     },
     "modifiers": {
-      "name": "storage.modifier.xenon",
-      "match": "\\b(?:const|readonly|static|virtual|override|abstract|extern|export|public|private)\\b"
+      "name": "storage.modifier.declaration.xenon",
+      "match": "\\b(?:const|readonly|static|threadlocal|virtual|override|abstract|extern|export|public|private)\\b"
     },
     "control-keywords": {
-      "name": "keyword.control.xenon",
+      "name": "storage.modifier.control.xenon",
       "match": "\\b(?:switch|case|default|if|else|while|for|break|continue|return)\\b"
     },
     "declaration-keywords": {
       "patterns": [
         {
-          "name": "keyword.control.import.xenon",
+          "name": "storage.modifier.declaration.import.xenon",
           "match": "\\busing\\b"
         },
         {
-          "name": "keyword.declaration.xenon",
+          "name": "storage.modifier.declaration.type.xenon",
           "match": "\\b(?:namespace|struct|interface|template|enum)\\b"
         },
         {
-          "name": "keyword.declaration.constraint.xenon",
+          "name": "storage.modifier.declaration.constraint.xenon",
           "match": "\\bwhere\\b"
         }
       ]
     },
     "expression-keywords": {
-      "name": "keyword.other.expression.xenon",
+      "name": "storage.modifier.expression.xenon",
       "match": "\\b(?:this|base|get|set|sizeof|alignof|offsetof|cast|bitcast)\\b"
     },
-    "ownership-type-keywords": {
-      "name": "storage.type.ownership.xenon",
-      "match": "\\b(?:unique|shared|weak|storage|pin)(?=\\s*<)"
+    "type-forming-keywords": {
+      "name": "storage.modifier.type-forming.xenon",
+      "match": "\\b(?:unique|shared|weak|storage|pin|atomic)(?=\\s*<)"
     },
-    "value-producing-keywords": {
-      "name": "keyword.operator.expression.xenon",
+    "value-forming-keywords": {
+      "name": "storage.modifier.value-forming.xenon",
       "match": "\\b(?:new|move|lock)\\b"
     },
     "lifetime-operation-keywords": {
-      "name": "keyword.other.lifetime.xenon",
+      "name": "storage.modifier.lifetime.xenon",
       "match": "\\b(?:free|destruct)\\b"
     },
     "operators": {
       "name": "keyword.operator.xenon",
-      "match": "(?:<<=|>>=|->|\\+\\+|--|==|!=|<=|>=|&&|\\|\\||<<|>>|\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|[+\\-*/%=!<>&|^~])"
+      "match": "(?:<->|-->|<<=|>>=|->|\\+\\+|--|==|!=|<=|>=|&&|\\|\\||<<|>>|\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|[+\\-*/%=!<>&|^~])"
     },
     "punctuation": {
       "patterns": [
