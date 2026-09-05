@@ -211,7 +211,7 @@
     },
     "type-forming-keywords": {
       "name": "storage.modifier.type-forming.xenon",
-      "match": "\\b(?:unique|shared|weak|storage|pin|atomic)(?=\\s*<)"
+      "match": "\\b(?:(?:unique|shared|weak|storage|pin|atomic)(?=\\s*<)|function\\b)"
     },
     "value-forming-keywords": {
       "name": "storage.modifier.value-forming.xenon",

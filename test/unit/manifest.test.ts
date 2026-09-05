@@ -170,10 +170,10 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   const typeFormingPattern = new RegExp(typeFormingKeywords?.match ?? "(?!)");
   for (const typeForm of [
     "unique<Resource>", "shared<Resource>", "weak<Resource>", "storage<Resource>",
-    "pin<Resource>", "atomic<int>", "atomic <Snapshot>"
+    "pin<Resource>", "atomic<int>", "atomic <Snapshot>", "function int(int)*"
   ])
     assert.match(typeForm, typeFormingPattern);
-  for (const identifier of ["uniquely", "sharedState", "weakness", "atomicValue"]) {
+  for (const identifier of ["uniquely", "sharedState", "weakness", "atomicValue", "functional"]) {
     assert.doesNotMatch(identifier, typeFormingPattern);
   }
 
