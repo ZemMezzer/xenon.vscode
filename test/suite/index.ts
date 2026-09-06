@@ -24,6 +24,10 @@ interface TestPaths {
   readonly nestedRoot: string;
   readonly parentSource: string;
   readonly nestedSource: string;
+  readonly project: string;
+  readonly toolSource: string;
+  readonly toolProject: string;
+  readonly workspace: string;
 }
 interface TopologySnapshot {
   readonly generation: number;
@@ -47,6 +51,9 @@ export async function run(): Promise<void> {
       break;
     case "xeproj":
       await testProjectDiscovery();
+      break;
+    case "dynamic-configuration":
+      await testDynamicConfigurationDiscovery();
       break;
     case "loose":
       await testLooseFile();
@@ -76,6 +83,26 @@ async function testProjectDiscovery(): Promise<void> {
   const document = await openXenon(paths.source);
   const definitions = await waitForDefinitions(document, positionOf(document, "Helper", true));
   assertDefinitionTargets(definitions, paths.source, paths.root);
+}
+
+async function testDynamicConfigurationDiscovery(): Promise<void> {
+  await waitForClientTargets(1, false);
+
+  await writeTextFile(paths.project, projectFile("Created", "executable"));
+  await writeTextFile(paths.source,
+    "namespace Created; public int CreatedAfterStart() { return 42; }\n");
+  const projectSymbols = await waitForWorkspaceSymbols("CreatedAfterStart");
+  assert.ok(projectSymbols.some((symbol) => symbol.name === "CreatedAfterStart"),
+    "a .xeproj created after LSP initialization must be indexed without a restart");
+
+  await writeTextFile(paths.toolProject, projectFile("Tools", "static-library"));
+  await writeTextFile(paths.toolSource,
+    "namespace Tools; public int AddedByWorkspace() { return 7; }\n");
+  await writeTextFile(paths.workspace,
+    "[workspace]\nname = \"Created Workspace\"\nprojects = [\"Created.xeproj\", \"Tools/Tools.xeproj\"]\n");
+  const workspaceSymbols = await waitForWorkspaceSymbols("AddedByWorkspace");
+  assert.ok(workspaceSymbols.some((symbol) => symbol.name === "AddedByWorkspace"),
+    "an .xws created after LSP initialization must be indexed without a restart");
 }
 
 async function testLooseFile(): Promise<void> {
@@ -429,6 +456,16 @@ async function appendNewline(path: string): Promise<void> {
   next.set(content);
   next[content.length] = 10;
   await vscode.workspace.fs.writeFile(uri, next);
+}
+
+async function writeTextFile(path: string, content: string): Promise<void> {
+  const uri = vscode.Uri.file(path);
+  await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(uri, ".."));
+  await vscode.workspace.fs.writeFile(uri, new TextEncoder().encode(content));
+}
+
+function projectFile(name: string, type: "executable" | "static-library"): string {
+  return `[project]\nname = "${name}"\ntype = "${type}"\n\n[source]\nroot = "src"\n`;
 }
 
 async function waitForFolderCount(count: number): Promise<void> {

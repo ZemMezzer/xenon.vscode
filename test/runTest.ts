@@ -28,6 +28,7 @@ export async function main(): Promise<void> {
   const allScenarios = [
     await createWorkspaceDiscoveryScenario(testRoot),
     await createProjectScenario(testRoot, executable),
+    await createDynamicConfigurationScenario(testRoot),
     await createLooseScenario(testRoot),
     await createOutsideWorkspaceScenario(testRoot, executable),
     await createMultiRootScenario(testRoot, executable),
@@ -159,6 +160,24 @@ async function createProjectScenario(testRoot: string, executable: string): Prom
     openPath: root,
     paths: { root, source },
     usePathResolution: false
+  };
+}
+
+async function createDynamicConfigurationScenario(testRoot: string): Promise<Scenario> {
+  const root = join(testRoot, "DynamicConfiguration");
+  await mkdir(root, { recursive: true });
+  return {
+    name: "dynamic-configuration",
+    openPath: root,
+    paths: {
+      root,
+      source: join(root, "src", "Main.xe"),
+      project: join(root, "Created.xeproj"),
+      toolSource: join(root, "Tools", "src", "Tool.xe"),
+      toolProject: join(root, "Tools", "Tools.xeproj"),
+      workspace: join(root, "Created.xws")
+    },
+    usePathResolution: true
   };
 }
 
