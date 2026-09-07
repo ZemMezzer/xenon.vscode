@@ -183,7 +183,7 @@
     },
     "modifiers": {
       "name": "storage.modifier.declaration.xenon",
-      "match": "\\b(?:const|readonly|static|threadlocal|virtual|override|abstract|extern|export|public|private)\\b"
+      "match": "\\b(?:const|readonly|static|threadlocal|virtual|override|abstract|sealed|extern|export|public|private|internal|protected)\\b"
     },
     "control-keywords": {
       "name": "storage.modifier.control.xenon",
