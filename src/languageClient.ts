@@ -281,7 +281,7 @@ export class XenonLanguageClientManager implements vscode.Disposable {
       return [];
     }
 
-    const patterns = ["**/*.xe", "**/*.xeproj", "**/*.xws"];
+    const patterns = ["**/*.xe", "**/*.xeproj", "**/*.xws", "**/*.xelib"];
     return patterns.map((pattern) => vscode.workspace.createFileSystemWatcher(
       new vscode.RelativePattern(target.folder, pattern)
     ));
@@ -291,7 +291,7 @@ export class XenonLanguageClientManager implements vscode.Disposable {
     target: ClientTarget,
     watchers: readonly vscode.FileSystemWatcher[]
   ): vscode.Disposable[] {
-    const kinds = [".xe", ".xeproj", ".xws"];
+    const kinds = [".xe", ".xeproj", ".xws", ".xelib"];
     return watchers.flatMap((watcher, index) => {
       const kind = kinds[index] ?? "file";
       return [

@@ -374,7 +374,7 @@ function assertWatcherTopology(snapshot: TopologySnapshot): void {
   for (const client of snapshot.clients) {
     assert.equal(
       client.watcherCount,
-      client.key === "standalone" ? 0 : 3,
+      client.key === "standalone" ? 0 : 4,
       `${client.key} must have the expected watcher count`
     );
   }
