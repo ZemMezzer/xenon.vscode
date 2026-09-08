@@ -192,6 +192,18 @@
     "declaration-keywords": {
       "patterns": [
         {
+          "name": "storage.modifier.declaration.operator.xenon",
+          "match": "\\b(operator)\\s+(implicit|explicit)\\b",
+          "captures": {
+            "1": { "name": "storage.modifier.declaration.xenon" },
+            "2": { "name": "entity.name.function.xenon" }
+          }
+        },
+        {
+          "name": "storage.modifier.declaration.operator.xenon",
+          "match": "\\boperator\\b"
+        },
+        {
           "name": "storage.modifier.declaration.import.xenon",
           "match": "\\busing\\b"
         },
