@@ -187,7 +187,7 @@
     },
     "control-keywords": {
       "name": "storage.modifier.control.xenon",
-      "match": "\\b(?:switch|case|default|if|else|while|for|break|continue|return)\\b"
+      "match": "\\b(?:switch|case|default|if|else|while|for|break|continue|return|try|catch|finally|throw)\\b"
     },
     "declaration-keywords": {
       "patterns": [

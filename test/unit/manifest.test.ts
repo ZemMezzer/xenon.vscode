@@ -187,7 +187,8 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   assert.equal(controlKeywords?.name, "storage.modifier.control.xenon");
   const controlPattern = new RegExp(controlKeywords?.match ?? "(?!)");
   for (const keyword of [
-    "switch", "case", "default", "if", "else", "while", "for", "break", "continue", "return"
+    "switch", "case", "default", "if", "else", "while", "for", "break", "continue", "return",
+    "try", "catch", "finally", "throw"
   ])
     assert.match(keyword, controlPattern);
 
