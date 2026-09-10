@@ -78,6 +78,12 @@
         }
       }
     ],
+    "snippets": [
+      {
+        "language": "xenon",
+        "path": "./resources/xenon.code-snippets"
+      }
+    ],
     "grammars": [
       {
         "language": "xenon",

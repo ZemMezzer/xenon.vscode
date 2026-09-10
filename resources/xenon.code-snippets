@@ -1,0 +1,45 @@
+{
+  "Arrow lambda": {
+    "prefix": "lambda",
+    "body": [
+      "[](${1:int value}) => {",
+      "\t${0:return value;}",
+      "}"
+    ],
+    "description": "Non-capturing arrow lambda"
+  },
+  "Function value": {
+    "prefix": "functionvalue",
+    "body": [
+      "function ${1:int}(${2:int}) ${3:callback} = [](${2} ${4:value}) => {",
+      "\t${0:return value;}",
+      "};"
+    ],
+    "description": "First-class Xenon function value"
+  },
+  "Value capture lambda": {
+    "prefix": "lambdacapture",
+    "body": ["[${1:value}](${2:int input}) => {", "\t${0:return value + input;}", "}"]
+  },
+  "Move capture lambda": {
+    "prefix": "lambdamove",
+    "body": ["[move ${1:value}]() => {", "\t${0:value->Use();}", "}"]
+  },
+  "Mutable borrow capture lambda": {
+    "prefix": "lambdaborrow",
+    "body": ["[&${1:value}](${2:int input}) => {", "\t${0:value += input;}", "}"]
+  },
+  "Readonly borrow capture lambda": {
+    "prefix": "lambdareadonly",
+    "body": ["[readonly &${1:value}](${2:int input}) => {", "\t${0:return value + input;}", "}"]
+  },
+  "Raw function pointer lambda": {
+    "prefix": "lambdaraw",
+    "body": [
+      "function ${1:int}(${2:int})* ${3:callback} = [](${2} ${4:value}) => {",
+      "\t${0:return value;}",
+      "};"
+    ],
+    "description": "Capture-free lambda stored as a raw function pointer"
+  }
+}
