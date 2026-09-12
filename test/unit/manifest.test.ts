@@ -206,7 +206,7 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   const lifetimeOperations = grammar.repository["lifetime-operation-keywords"];
   assert.equal(lifetimeOperations?.name, "storage.modifier.lifetime.xenon");
   const lifetimeOperationPattern = new RegExp(lifetimeOperations?.match ?? "(?!)");
-  for (const keyword of ["free", "destruct"])
+  for (const keyword of ["malloc", "calloc", "free", "delete", "destruct"])
     assert.match(keyword, lifetimeOperationPattern);
   const declarationPatterns = grammar.repository["declaration-keywords"]?.patterns ?? [];
   assert.ok(declarationPatterns.every(pattern => pattern.name?.startsWith("storage.modifier.declaration.")));

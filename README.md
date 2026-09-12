@@ -17,6 +17,7 @@ The installed extension does not require a separate Node.js, npm, TypeScript, or
 - User-defined `operator` declarations and contextual `implicit`/`explicit` highlighting; the current Language Server provides operator diagnostics, hover, definition and reference navigation, including selected conversion operators.
 - Concurrency syntax highlighting and Language Server intelligence for `atomic<T>`, `threadlocal`, atomic exchange (`<->`), and compare-exchange (`value : expected --> desired`).
 - Explicit `move` and `lock` expressions plus `unique<T>`, `shared<T>`, and `weak<T>` ownership-type highlighting; the current Xenon Language Server reports local/parameter/`this`-field use-after-move, stable interprocedural receiver-field effects, hidden interface/virtual effects, known-alias invalidation, restoration, escaping local reference returns, destructor restrictions, generic copyability, weak-access safety, and ownership-aware copy/destruction behavior.
+- Raw-memory highlighting and completion cover `malloc`, `calloc`, storage-only `free`, destructor-aware `delete`, and explicit `destruct`, including direct mutable raw-pointer placement and lifetime operations.
 - Preview highlighting, completion, hover and definition support for generic parameters, open and nested generic struct references, concrete generic-function and generic-struct specializations, `where` constraints and structural `template` declarations.
 - Diagnostics.
 - Hover information.

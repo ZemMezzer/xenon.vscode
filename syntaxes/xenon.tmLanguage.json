@@ -231,7 +231,7 @@
     },
     "lifetime-operation-keywords": {
       "name": "storage.modifier.lifetime.xenon",
-      "match": "\\b(?:free|destruct)\\b"
+      "match": "\\b(?:malloc|calloc|free|delete|destruct)\\b"
     },
     "operators": {
       "name": "keyword.operator.xenon",

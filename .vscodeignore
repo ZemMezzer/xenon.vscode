@@ -16,5 +16,7 @@ node_modules/**
 tsconfig.json
 esbuild.mjs
 package-lock.json
+build.bat
+build.sh
 resources.zip
 VSCode-Extension-Initial-Release-Report.md
