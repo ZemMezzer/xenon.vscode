@@ -1,4 +1,14 @@
 {
+  "Inferred local variable": {
+    "prefix": "var",
+    "body": "var ${1:name} = ${2:expression};$0",
+    "description": "Local variable whose type is inferred from its required initializer"
+  },
+  "Readonly inferred local variable": {
+    "prefix": "readonly var",
+    "body": "readonly var ${1:name} = ${2:expression};$0",
+    "description": "Readonly local variable with an inferred type"
+  },
   "Arrow lambda": {
     "prefix": "lambda",
     "body": [
@@ -19,19 +29,35 @@
   },
   "Value capture lambda": {
     "prefix": "lambdacapture",
-    "body": ["[${1:value}](${2:int input}) => {", "\t${0:return value + input;}", "}"]
+    "body": [
+      "[${1:value}](${2:int input}) => {",
+      "\t${0:return value + input;}",
+      "}"
+    ]
   },
   "Move capture lambda": {
     "prefix": "lambdamove",
-    "body": ["[move ${1:value}]() => {", "\t${0:value->Use();}", "}"]
+    "body": [
+      "[move ${1:value}]() => {",
+      "\t${0:value->Use();}",
+      "}"
+    ]
   },
   "Mutable borrow capture lambda": {
     "prefix": "lambdaborrow",
-    "body": ["[&${1:value}](${2:int input}) => {", "\t${0:value += input;}", "}"]
+    "body": [
+      "[&${1:value}](${2:int input}) => {",
+      "\t${0:value += input;}",
+      "}"
+    ]
   },
   "Readonly borrow capture lambda": {
     "prefix": "lambdareadonly",
-    "body": ["[readonly &${1:value}](${2:int input}) => {", "\t${0:return value + input;}", "}"]
+    "body": [
+      "[readonly &${1:value}](${2:int input}) => {",
+      "\t${0:return value + input;}",
+      "}"
+    ]
   },
   "Raw function pointer lambda": {
     "prefix": "lambdaraw",
@@ -41,5 +67,50 @@
       "};"
     ],
     "description": "Capture-free lambda stored as a raw function pointer"
+  },
+  "Await value": {
+    "prefix": "await",
+    "body": "${1:Result} ${2:value} = await ${3:operation};",
+    "description": "Await a library operation inside an async function"
+  },
+  "Await operator": {
+    "prefix": "opawait",
+    "body": [
+      "public static bool operator await(readonly ${1:Operation}& value, storage<${2:Result}>& result, function void() continuation)",
+      "{",
+      "\t$0",
+      "}"
+    ],
+    "description": "Value await protocol: true initializes storage; false retains the continuation"
+  },
+  "Resolve operator": {
+    "prefix": "opresolve",
+    "body": [
+      "public static void operator resolve(${1:Task}& target, ${2:Result} value)",
+      "{",
+      "\t$0",
+      "}"
+    ],
+    "description": "Successful terminal completion operator"
+  },
+  "Reject operator": {
+    "prefix": "opreject",
+    "body": [
+      "public static void operator reject(${1:Task}& target, ${2:Error} error)",
+      "{",
+      "\t$0",
+      "}"
+    ],
+    "description": "Exceptional terminal completion operator"
+  },
+  "Async function": {
+    "prefix": "async",
+    "body": [
+      "async ${1:Result} ${2:Name}(${3})",
+      "{",
+      "    $0",
+      "}"
+    ],
+    "description": "Function using resolve/reject completion semantics; await is optional"
   }
 }

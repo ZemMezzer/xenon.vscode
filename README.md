@@ -14,6 +14,7 @@ The installed extension does not require a separate Node.js, npm, TypeScript, or
 ## Features
 
 - Lexical and semantic syntax highlighting.
+- Local type inference with `var`: declaration-keyword highlighting and `var` / `readonly var` snippets. With a Xenon compiler that supports `var`, the language server provides keyword completion, inferred-type hover and declaration diagnostics. An initializer is required; `var` is valid only for locals and is not a type.
 - User-defined `operator` declarations and contextual `implicit`/`explicit` highlighting; the current Language Server provides operator diagnostics, hover, definition and reference navigation, including selected conversion operators.
 - Concurrency syntax highlighting and Language Server intelligence for `atomic<T>`, `threadlocal`, atomic exchange (`<->`), and compare-exchange (`value : expected --> desired`).
 - Explicit `move` and `lock` expressions plus `unique<T>`, `shared<T>`, and `weak<T>` ownership-type highlighting; the current Xenon Language Server reports local/parameter/`this`-field use-after-move, stable interprocedural receiver-field effects, hidden interface/virtual effects, known-alias invalidation, restoration, escaping local reference returns, destructor restrictions, generic copyability, weak-access safety, and ownership-aware copy/destruction behavior.
@@ -72,3 +73,7 @@ Run **Xenon: Show Language Server Output** for technical details, then run **Xen
 ### Changes to executablePath
 
 Changing `xenon.executablePath` while the extension is active stops the current server and starts a fresh `xenon lsp` process.
+
+### Await and resumable functions
+
+The extension highlights `async`, `await`, `resolve` and `reject`, and includes snippets for async functions, await expressions and protocol operators. The language server provides protocol diagnostics, async signatures and keyword completion. The explicit `async` modifier selects completion semantics; `await` is allowed only inside async functions. Async functions without await complete synchronously without a coroutine frame. Awaitable and return types remain ordinary library structs, including for `async Main`.

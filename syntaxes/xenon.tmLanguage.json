@@ -183,7 +183,7 @@
     },
     "modifiers": {
       "name": "storage.modifier.declaration.xenon",
-      "match": "\\b(?:const|readonly|static|threadlocal|virtual|override|abstract|sealed|extern|export|public|private|internal|protected)\\b"
+      "match": "\\b(?:async|const|readonly|static|threadlocal|virtual|override|abstract|sealed|extern|export|public|private|internal|protected)\\b"
     },
     "control-keywords": {
       "name": "storage.modifier.control.xenon",
@@ -191,6 +191,10 @@
     },
     "declaration-keywords": {
       "patterns": [
+        {
+          "name": "storage.modifier.declaration.variable.xenon",
+          "match": "\\bvar\\b"
+        },
         {
           "name": "storage.modifier.declaration.operator.xenon",
           "match": "\\b(operator)\\s+(implicit|explicit)\\b",
@@ -227,11 +231,11 @@
     },
     "value-forming-keywords": {
       "name": "storage.modifier.value-forming.xenon",
-      "match": "\\b(?:new|move|lock)\\b"
+      "match": "\\b(?:new|move|lock|await)\\b"
     },
     "lifetime-operation-keywords": {
       "name": "storage.modifier.lifetime.xenon",
-      "match": "\\b(?:malloc|calloc|free|delete|destruct)\\b"
+      "match": "\\b(?:malloc|calloc|free|delete|destruct|resolve|reject)\\b"
     },
     "operators": {
       "name": "keyword.operator.xenon",

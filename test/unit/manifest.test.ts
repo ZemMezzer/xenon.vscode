@@ -200,13 +200,13 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   const valueFormingKeywords = grammar.repository["value-forming-keywords"];
   assert.equal(valueFormingKeywords?.name, "storage.modifier.value-forming.xenon");
   const valueFormingPattern = new RegExp(valueFormingKeywords?.match ?? "(?!)");
-  for (const keyword of ["new", "move", "lock"])
+  for (const keyword of ["new", "move", "lock", "await"])
     assert.match(keyword, valueFormingPattern);
 
   const lifetimeOperations = grammar.repository["lifetime-operation-keywords"];
   assert.equal(lifetimeOperations?.name, "storage.modifier.lifetime.xenon");
   const lifetimeOperationPattern = new RegExp(lifetimeOperations?.match ?? "(?!)");
-  for (const keyword of ["malloc", "calloc", "free", "delete", "destruct"])
+  for (const keyword of ["malloc", "calloc", "free", "delete", "destruct", "resolve", "reject"])
     assert.match(keyword, lifetimeOperationPattern);
   const declarationPatterns = grammar.repository["declaration-keywords"]?.patterns ?? [];
   assert.ok(declarationPatterns.every(pattern => pattern.name?.startsWith("storage.modifier.declaration.")));
@@ -217,6 +217,15 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   assert.match("template", declarationPattern);
   assert.doesNotMatch("set", declarationPattern);
   assert.match("where", constraintPattern);
+
+  const inferredLocalPattern = new RegExp(declarationPatterns
+    .find((pattern) => pattern.name === "storage.modifier.declaration.variable.xenon")?.match ?? "(?!)");
+  for (const declaration of ["var count = 10;", "readonly var value = Get();", "for (var i = 0; i < 3; i++)"])
+    assert.equal(declaration.match(inferredLocalPattern)?.[0], "var");
+  for (const identifier of ["variable", "myvar", "varCount", "Var", "_var"])
+    assert.doesNotMatch(identifier, inferredLocalPattern);
+  assert.doesNotMatch("var", baseTypePattern);
+  assert.doesNotMatch("var", typeFormingPattern);
 
   const genericTypes = grammar.repository["generic-types"];
   assert.equal(genericTypes?.name, "entity.name.type.struct.xenon");
@@ -231,6 +240,14 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   const setterValue = setter?.patterns?.find(
     (pattern) => pattern.name === "storage.modifier.contextual-value.xenon");
   assert.match("value", new RegExp(setterValue?.match ?? "(?!)"));
+});
+
+test("inferred local snippets always include an initializer", () => {
+  const snippets = readJson<Record<string, { prefix: string; body: string }>>("resources/xenon.code-snippets");
+  assert.equal(snippets["Inferred local variable"]?.prefix, "var");
+  assert.equal(snippets["Inferred local variable"]?.body, "var ${1:name} = ${2:expression};$0");
+  assert.equal(snippets["Readonly inferred local variable"]?.prefix, "readonly var");
+  assert.equal(snippets["Readonly inferred local variable"]?.body, "readonly var ${1:name} = ${2:expression};$0");
 });
 
 test("release root metadata and packaging exclusions are internally consistent", () => {
