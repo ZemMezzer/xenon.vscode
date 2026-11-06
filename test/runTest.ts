@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { delimiter, dirname, join, resolve } from "node:path";
 import {
   downloadAndUnzipVSCode,
@@ -26,6 +26,7 @@ export async function main(): Promise<void> {
   const installed = process.env.XENON_TEST_INSTALLED === "1";
   const installedEnvironment = installed ? await installVsix(testRoot) : undefined;
   const allScenarios = [
+    await createAllocatorScenario(testRoot, executable),
     await createWorkspaceDiscoveryScenario(testRoot),
     await createProjectScenario(testRoot, executable),
     await createDynamicConfigurationScenario(testRoot),
@@ -48,6 +49,7 @@ export async function main(): Promise<void> {
       ? `${dirname(executable)}${delimiter}${inheritedPath}`
       : inheritedPath;
     await runTests({
+      version: process.env.XENON_TEST_VSCODE_VERSION ?? "1.135.0",
       ...(installedEnvironment === undefined
         ? {}
         : { vscodeExecutablePath: installedEnvironment.vscodeExecutablePath }),
@@ -68,6 +70,17 @@ export async function main(): Promise<void> {
           ]
     });
   }
+}
+
+async function createAllocatorScenario(testRoot: string, executable: string): Promise<Scenario> {
+  const root = join(testRoot, "Allocators");
+  const source = join(root, "src", "Main.xe");
+  await writeFiles({
+    [join(root, "Allocators.xeproj")]: projectFile("Allocators", "executable"),
+    [source]: await readFile(resolve("test", "fixtures", "allocators.xe"), "utf8"),
+    [join(root, ".vscode", "settings.json")]: JSON.stringify({ "xenon.executablePath": executable })
+  });
+  return { name: "allocators", openPath: root, paths: { root, source }, usePathResolution: false };
 }
 
 interface InstalledEnvironment {
@@ -93,7 +106,8 @@ async function installVsix(testRoot: string): Promise<InstalledEnvironment> {
     engines: { vscode: "^1.96.0" }
   }, undefined, 2), "utf8");
 
-  const vsix = resolve(process.env.XENON_TEST_VSIX ?? "xenon-0.1.0.vsix");
+  const manifest = JSON.parse(await readFile(resolve("package.json"), "utf8")) as { name: string; version: string };
+  const vsix = resolve(process.env.XENON_TEST_VSIX ?? `${manifest.name}-${manifest.version}.vsix`);
   const [cli, ...cliArgs] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
   if (cli === undefined) {
     throw new Error("Could not resolve the VS Code command-line launcher.");

@@ -46,6 +46,9 @@ export async function run(): Promise<void> {
   assert.equal(extension.isActive, true, "extension must activate");
 
   switch (scenario) {
+    case "allocators":
+      await testAllocators();
+      break;
     case "xws":
       await testWorkspaceDiscovery();
       break;
@@ -70,6 +73,70 @@ export async function run(): Promise<void> {
     default:
       throw new Error(`Unknown integration scenario '${scenario}'.`);
   }
+}
+
+async function testAllocators(): Promise<void> {
+  const document = await openXenon(paths.source);
+  const hover = await waitForHover(document, positionOf(document, "Heap"));
+  assert.ok(hover.some(item => item.contents.some(content =>
+    (typeof content === "string" ? content : content.value).includes("allocator Heap"))));
+  const operationHover = await waitForHover(document, positionOf(document, "@Value"));
+  assert.ok(operationHover.some(item => item.contents.some(content =>
+    (typeof content === "string" ? content : content.value).includes("@Value(Heap* provider)"))));
+  const providerPosition = document.positionAt(document.getText().indexOf("new(provider)") + 5);
+  const contextHover = await waitForHover(document, positionOf(document, "@Arena"));
+  assert.ok(contextHover.some(item => item.contents.some(content =>
+    (typeof content === "string" ? content : content.value).includes("@Arena(Heap* provider)"))));
+  const definitions = await waitForDefinitions(document, providerPosition);
+  assertDefinitionTargets(definitions, paths.source, paths.root);
+  const references = await vscode.commands.executeCommand<vscode.Location[]>(
+    "vscode.executeReferenceProvider", document.uri, providerPosition);
+  assert.ok(references && references.length >= 3);
+  const completion = await vscode.commands.executeCommand<vscode.CompletionList>(
+    "vscode.executeCompletionItemProvider", document.uri, positionOf(document, "allocator"));
+  assert.ok(completion?.items.some(item => (typeof item.label === "string" ? item.label : item.label.label) === "allocator"));
+  const signature = await vscode.commands.executeCommand<vscode.SignatureHelp>(
+    "vscode.executeSignatureHelpProvider", document.uri,
+    document.positionAt(document.getText().indexOf("Value(2, 3)") + "Value(2, ".length));
+  assert.equal(signature?.activeParameter, 1);
+  const symbols = await waitForWorkspaceSymbols("+Heap");
+  assert.ok(symbols.some(symbol => symbol.name === "+Heap"));
+  const rename = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+    "vscode.executeDocumentRenameProvider", document.uri, positionOf(document, "-Heap"), "Provider");
+  assert.ok(rename);
+  assert.ok(rename.get(document.uri).some(edit => document.getText(edit.range) === "Heap" &&
+    edit.range.start.line === document.positionAt(document.getText().indexOf("+Heap")).line));
+  assert.equal(await vscode.workspace.applyEdit(rename), true);
+  assert.equal(document.getText().includes("Heap"), false);
+  await waitForHover(document, positionOf(document, "Provider"));
+  // A deliberate allocator error confirms that diagnostic publishing is live.
+  const invalid = new vscode.WorkspaceEdit();
+  invalid.insert(document.uri, new vscode.Position(document.lineCount, 0),
+    "\nvoid Invalid() { Value* broken = new Value(1, 2); }\n" +
+    "struct Bad { allocator Provider* context; int ordinary; @Bad() { ordinary = 1; } void Reset() { context = null; } }\n");
+  await vscode.workspace.applyEdit(invalid);
+  await retry(async () => vscode.languages.getDiagnostics(document.uri).some(diagnostic =>
+    String(typeof diagnostic.code === "object" ? diagnostic.code.value : diagnostic.code) === "XE0803")
+      ? true : undefined, "allocation-constructor diagnostic");
+  await retry(async () => {
+    const codes = vscode.languages.getDiagnostics(document.uri).map(d =>
+      String(typeof d.code === "object" ? d.code.value : d.code));
+    return codes.includes("XE0805") && codes.includes("XE0806") ? true : undefined;
+  }, "strict allocator field diagnostics");
+
+  const moreDiagnostics = new vscode.WorkspaceEdit();
+  moreDiagnostics.insert(document.uri, new vscode.Position(document.lineCount, 0),
+    "\nstruct InvalidField { allocator int bad; }\n" +
+    "struct Restricted { private @Restricted(Provider* heap) {} public @Restricted() {} }\n" +
+    "void Outside(Provider* heap) { Restricted* value = new(heap) Restricted(); }\n");
+  await vscode.workspace.applyEdit(moreDiagnostics);
+  await retry(async () => vscode.languages.getDiagnostics(document.uri).some(diagnostic =>
+    String(typeof diagnostic.code === "object" ? diagnostic.code.value : diagnostic.code) === "XE0808" &&
+    document.getText(diagnostic.range) === "int") ? true : undefined, "allocator field type diagnostic");
+  await retry(async () => vscode.languages.getDiagnostics(document.uri).some(diagnostic =>
+    String(typeof diagnostic.code === "object" ? diagnostic.code.value : diagnostic.code) === "XE2004" &&
+    diagnostic.message.includes("@Restricted(Provider*)") &&
+    document.getText(diagnostic.range) === "new") ? true : undefined, "inaccessible context constructor diagnostic");
 }
 
 async function testWorkspaceDiscovery(): Promise<void> {

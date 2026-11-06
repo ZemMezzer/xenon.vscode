@@ -213,7 +213,7 @@
         },
         {
           "name": "storage.modifier.declaration.type.xenon",
-          "match": "\\b(?:namespace|struct|interface|template|enum)\\b"
+          "match": "\\b(?:namespace|struct|interface|template|enum|allocator(?=\\s+[A-Za-z_]|\\s*$))\\b"
         },
         {
           "name": "storage.modifier.declaration.constraint.xenon",
@@ -243,6 +243,10 @@
     },
     "punctuation": {
       "patterns": [
+        {
+          "name": "punctuation.definition.allocation-context.xenon",
+          "match": "@"
+        },
         {
           "name": "punctuation.terminator.statement.xenon",
           "match": ";"

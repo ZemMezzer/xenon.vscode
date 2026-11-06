@@ -2,7 +2,7 @@
   "name": "xenon",
   "displayName": "Xenon",
   "description": "Xenon Language support for VSCode.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "zem",
   "license": "MIT",
   "icon": "resources/xenon.png",

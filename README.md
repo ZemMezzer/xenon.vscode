@@ -31,6 +31,28 @@ The installed extension does not require a separate Node.js, npm, TypeScript, or
 
 Semantic editor intelligence comes from `xenon lsp`; the extension does not duplicate compiler or project-system logic.
 
+### Native allocators
+
+Use `allocfield` for an instance field such as `private allocator Heap* _provider;` and `allocctor` for the context constructor that initializes it. The Xenon language server reports reads of the incomplete instance inside `@Type` and assignments to allocator fields after that phase. The `allocator`, `newalloc` and `newallocarray` snippets create allocator declarations and allocation expressions. Allocation operations appear as `+Heap`, `-Heap` and `@Value` in the outline; renaming their identifiers renames the containing type too.
+
+```xenon
+allocator Heap {
+    +Heap(nuint size, nuint alignment) { return malloc(size, alignment); }
+    -Heap(void* block) { free(block); }
+}
+
+void Example() {
+    Heap* provider = new Heap();
+    int* value = new(provider) int(42);
+    int[] values = new(provider) int[4];
+    delete(values);
+    delete(value);
+    delete(provider);
+}
+```
+
+The provider must remain alive until its allocations are released. `delete` uses the original provider; it does not require a provider argument. An allocation context constructor such as `public @Value(Heap* provider)` runs before the ordinary constructor when using `new(provider) Value(...)`. The `allocctor` snippet inserts a public context constructor. Omitting the access modifier makes it private, as with an ordinary constructor. An allocator can use `public @Arena(Heap* parent)` to receive the provider that creates its own instance; its `+Arena` and `-Arena` operations keep their allocation and release meanings.
+
 First-class callables use `function int(int)` and arrow lambdas such as `[offset](int value) => { return value + offset; }`. Capture snippets cover value, move, mutable-borrow and readonly-borrow modes. Raw C-compatible callback pointers remain available as `function int(int)*` with capture-free lambdas. The Xenon Language Server links capture-list and body references to the original local and displays the managed function signature without generated environment details.
 
 `move` is a lifetime transfer, while **relocation** is the physical strategy used by the compiler. Ordinary arrays can be moved: heap arrays transfer their handle, and stack arrays can relocate between compatible local lifetimes inside one function. Returning callee-stack-backed `T[]` remains an intentional lifetime/ABI error; heap-backed, `unique<T[]>`, and `shared<T[]>` results can be return-moved normally.

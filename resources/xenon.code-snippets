@@ -1,4 +1,41 @@
 {
+  "Allocator declaration": {
+    "prefix": "allocator",
+    "body": [
+      "allocator ${1:Heap}",
+      "{",
+      "\t+${1}(nuint size, nuint alignment) { return malloc(size, alignment); }",
+      "\t-${1}(void* block) { free(block); }",
+      "\t$0",
+      "}"
+    ],
+    "description": "Native allocator with paired allocation and deallocation operations"
+  },
+  "Allocator context field": {
+    "prefix": "allocfield",
+    "body": "private allocator ${1:Heap*} ${2:_provider};$0",
+    "description": "Instance field writable only in the owning @Type constructor"
+  },
+  "Allocation constructor": {
+    "prefix": "allocctor",
+    "body": [
+      "public @${1:Value}(${2:Heap}* ${3:provider})",
+      "{",
+      "\t$0",
+      "}"
+    ],
+    "description": "Initialize allocator fields before ordinary field initializers and the constructor body"
+  },
+  "Allocate with provider": {
+    "prefix": "newalloc",
+    "body": "new(${1:provider}) ${2:Value}(${3:arguments})$0",
+    "description": "Allocate through a provider that outlives the allocated value"
+  },
+  "Allocate array with provider": {
+    "prefix": "newallocarray",
+    "body": "new(${1:provider}) ${2:int}[${3:length}]$0",
+    "description": "Allocate an array through a provider that outlives the array"
+  },
   "Inferred local variable": {
     "prefix": "var",
     "body": "var ${1:name} = ${2:expression};$0",

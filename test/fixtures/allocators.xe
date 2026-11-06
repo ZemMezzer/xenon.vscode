@@ -1,0 +1,34 @@
+namespace Allocators;
+
+allocator Heap {
+    +Heap(nuint size, nuint alignment) { return malloc(size, alignment); }
+    -Heap(void* block) { free(block); }
+    public int initial = 1;
+    public void Ping() {}
+}
+
+struct Value {
+    private allocator Heap* context;
+    public int number = context->initial;
+    public @Value(Heap* provider) { context = provider; }
+    public Value(int first, int second) { number += first + second; }
+}
+
+allocator Arena : Heap {
+    public allocator Heap* parent;
+    public @Arena(Heap* provider) { parent = provider; }
+    public Arena() {}
+}
+
+int Main() {
+    Heap* provider = new Heap();
+    Value* value = new(provider) Value(2, 3);
+    Arena* arena = new(provider) Arena();
+    int[] values = new(provider) int[4];
+    provider->Ping();
+    delete(values);
+    delete(value);
+    delete(arena);
+    delete(provider);
+    return 0;
+}

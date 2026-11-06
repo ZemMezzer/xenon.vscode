@@ -215,6 +215,12 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   const constraintPattern = new RegExp(declarationPatterns
     .find((pattern) => pattern.name === "storage.modifier.declaration.constraint.xenon")?.match ?? "(?!)");
   assert.match("template", declarationPattern);
+  assert.match("allocator Heap {", declarationPattern);
+  assert.equal("private allocator Heap* _provider;".match(declarationPattern)?.[0], "allocator");
+  assert.doesNotMatch("@Value(Heap* allocator)", declarationPattern);
+  assert.doesNotMatch("_provider = allocator;", declarationPattern);
+  for (const identifier of ["allocatorValue", "myallocator", "Allocator", "_allocator"])
+    assert.doesNotMatch(identifier, declarationPattern);
   assert.doesNotMatch("set", declarationPattern);
   assert.match("where", constraintPattern);
 
@@ -228,6 +234,10 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   assert.doesNotMatch("var", typeFormingPattern);
 
   const genericTypes = grammar.repository["generic-types"];
+  const allocationContext = grammar.repository["punctuation"]?.patterns?.find(
+    rule => rule.name === "punctuation.definition.allocation-context.xenon");
+  assert.match("@Value(Heap* provider)", new RegExp(allocationContext?.match ?? "(?!)"));
+  assert.doesNotMatch("+Heap(nuint size, nuint alignment)", new RegExp(allocationContext?.match ?? "(?!)"));
   assert.equal(genericTypes?.name, "entity.name.type.struct.xenon");
   assert.match("List<int>", new RegExp(genericTypes?.match ?? "(?!)"));
 
@@ -248,6 +258,16 @@ test("inferred local snippets always include an initializer", () => {
   assert.equal(snippets["Inferred local variable"]?.body, "var ${1:name} = ${2:expression};$0");
   assert.equal(snippets["Readonly inferred local variable"]?.prefix, "readonly var");
   assert.equal(snippets["Readonly inferred local variable"]?.body, "readonly var ${1:name} = ${2:expression};$0");
+});
+
+test("allocator snippets distinguish context construction from storage operations", () => {
+  const snippets = readJson<Record<string, { prefix: string; body: string[] }>>("resources/xenon.code-snippets");
+  const context = snippets["Allocation constructor"];
+  assert.equal(context?.prefix, "allocctor");
+  assert.equal(context?.body[0], "public @${1:Value}(${2:Heap}* ${3:provider})");
+  const allocator = snippets["Allocator declaration"]?.body.join("\n") ?? "";
+  assert.match(allocator, /\+\$\{1\}\(nuint size, nuint alignment\)/);
+  assert.match(allocator, /-\$\{1\}\(void\* block\)/);
 });
 
 test("release root metadata and packaging exclusions are internally consistent", () => {
