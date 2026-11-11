@@ -46,6 +46,9 @@ export async function run(): Promise<void> {
   assert.equal(extension.isActive, true, "extension must activate");
 
   switch (scenario) {
+    case "using":
+      await testUsingDeclarations(extension.extensionUri);
+      break;
     case "allocators":
       await testAllocators();
       break;
@@ -73,6 +76,68 @@ export async function run(): Promise<void> {
     default:
       throw new Error(`Unknown integration scenario '${scenario}'.`);
   }
+}
+
+async function testUsingDeclarations(extensionUri: vscode.Uri): Promise<void> {
+  const document = await openXenon(paths.source);
+  const hovers = await waitForHover(document, positionOf(document, "owned", true));
+  const hoverText = hovers.flatMap(hover => hover.contents.map(content =>
+    typeof content === "string" ? content : content.value)).join("\n");
+  assert.match(hoverText, /Resource\*/);
+  assert.match(hoverText, /readonly/);
+  const definitions = await waitForDefinitions(document, positionOf(document, "owned", true));
+  assertDefinitionTargets(definitions, paths.source, paths.root);
+  const declarationLine = document.positionAt(document.getText().indexOf("using var owned")).line;
+  assert.ok(definitions.some(definition =>
+    ("targetUri" in definition ? definition.targetSelectionRange ?? definition.targetRange : definition.range).start.line === declarationLine));
+  const references = await vscode.commands.executeCommand<vscode.Location[]>(
+    "vscode.executeReferenceProvider", document.uri, positionOf(document, "owned"));
+  assert.equal(references?.length, 3);
+  const completion = await vscode.commands.executeCommand<vscode.CompletionList>(
+    "vscode.executeCompletionItemProvider", document.uri,
+    document.positionAt(document.getText().indexOf("using var owned")));
+  assert.ok(completion?.items.some(item =>
+    (typeof item.label === "string" ? item.label : item.label.label) === "using"));
+
+  // Expand the shipped snippets in the real editor and let the compiler check them.
+  const snippetBytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(extensionUri, "resources", "xenon.code-snippets"));
+  const snippets = JSON.parse(Buffer.from(snippetBytes).toString("utf8")) as Record<string, { prefix: string; body: string }>;
+  const editor = await vscode.window.showTextDocument(document);
+  for (const [index, prefix] of ["using", "usingptr", "usingarray", "usingalloc"].entries()) {
+    const snippet = Object.values(snippets).find(value => value.prefix === prefix);
+    assert.ok(snippet, `missing shipped snippet '${prefix}'`);
+    await editor.insertSnippet(new vscode.SnippetString(
+      `\nvoid Snippet${index}(Heap* provider, int length) {\n${snippet.body}\n}\n`),
+      document.positionAt(document.getText().length));
+  }
+  await waitForHover(document, positionOf(document, "Snippet3"));
+  assert.deepEqual(vscode.languages.getDiagnostics(document.uri).filter(d => d.severity === vscode.DiagnosticSeverity.Error), []);
+
+  const rename = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+    "vscode.executeDocumentRenameProvider", document.uri, positionOf(document, "owned", true), "renamed");
+  assert.ok(rename);
+  assert.equal(rename.get(document.uri).filter(edit => document.getText(edit.range) === "owned").length, 3);
+  assert.equal(await vscode.workspace.applyEdit(rename), true);
+  await waitForHover(document, positionOf(document, "renamed", true));
+
+  const invalid = new vscode.WorkspaceEdit();
+  invalid.insert(document.uri, document.positionAt(document.getText().indexOf("return renamed")),
+    "renamed = new Resource();\n    ");
+  invalid.insert(document.uri, document.positionAt(document.getText().length),
+    "\nvoid MissingInitializer() { using Resource* missing; }\n");
+  assert.equal(await vscode.workspace.applyEdit(invalid), true);
+  const errors = await retry(async () => {
+    const diagnostics = vscode.languages.getDiagnostics(document.uri);
+    const readonly = diagnostics.some(d => d.message.includes("a 'using' local cannot be reassigned"));
+    const initializer = diagnostics.some(d =>
+      String(typeof d.code === "object" ? d.code.value : d.code) === "XE2289");
+    return readonly && initializer
+      ? diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error)
+      : undefined;
+  }, "using readonly and initializer diagnostics");
+  const invalidLines = [positionOf(document, "renamed =", true).line, positionOf(document, "using Resource* missing").line];
+  assert.ok(errors.every(d => invalidLines.includes(d.range.start.line)),
+    "the fixture and expanded snippets must have no errors outside the deliberately invalid declarations");
 }
 
 async function testAllocators(): Promise<void> {
@@ -255,11 +320,13 @@ async function testMultiRoot(): Promise<void> {
 
   const executable = process.env.XENON_TEST_EXECUTABLE;
   assert.ok(executable);
-  const alternateSeparators = executable.replaceAll("\\", "/");
+  // Whitespace is normalized by selectExecutable, but always changes the setting
+  // even when the supplied path already uses forward slashes (or runs on Unix).
+  const alternateConfiguration = ` ${executable} `;
   const beforeConfigurationRestart = await getTopologySnapshot();
   await vscode.workspace.getConfiguration("xenon").update(
     "executablePath",
-    alternateSeparators,
+    alternateConfiguration,
     vscode.ConfigurationTarget.Workspace
   );
   const afterConfigurationRestart = await waitForRebuiltTopology(beforeConfigurationRestart, 3, true);

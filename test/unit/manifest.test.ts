@@ -252,6 +252,23 @@ test("language configuration and TextMate grammar remain valid JSON with actual 
   assert.match("value", new RegExp(setterValue?.match ?? "(?!)"));
 });
 
+test("using declarations and namespace imports share declaration highlighting", () => {
+  const grammar = readJson<{ repository: Record<string, GrammarRule> }>("syntaxes/xenon.tmLanguage.json");
+  const rules = grammar.repository["declaration-keywords"]?.patterns ?? [];
+  const usingRule = rules.find(rule => rule.name === "storage.modifier.declaration.using.xenon");
+  assert.ok(usingRule?.match);
+  const pattern = new RegExp(usingRule.match);
+  for (const source of [
+    "using Core;", "using Alias = Core.Resource;", "using var p = Create();",
+    "using Resource* p = new Resource();", "using Resource p = new Resource();",
+    "using Resource[] p = new Resource[4];", "using var p = new(provider) Resource();"
+  ]) {
+    assert.equal(source.match(pattern)?.[0], "using");
+  }
+  for (const identifier of ["usingValue", "myusing", "_using", "Using"])
+    assert.doesNotMatch(identifier, pattern);
+});
+
 test("inferred local snippets always include an initializer", () => {
   const snippets = readJson<Record<string, { prefix: string; body: string }>>("resources/xenon.code-snippets");
   assert.equal(snippets["Inferred local variable"]?.prefix, "var");

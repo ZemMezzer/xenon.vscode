@@ -1,0 +1,22 @@
+namespace UsingEditor;
+
+allocator Heap {
+    +Heap(nuint size, nuint alignment) { return malloc(size, alignment); }
+    -Heap(void* block) { free(block); }
+}
+
+struct Resource {
+    public int Value;
+    public ~Resource() {}
+}
+
+int Main() {
+    using var owned = new Resource();
+    using Resource typed = new Resource();
+    using Resource* pointer = new Resource();
+    using var values = new int[4];
+    using var provider = new Heap();
+    using var allocated = new(provider) Resource();
+    owned->Value = 42;
+    return owned->Value;
+}

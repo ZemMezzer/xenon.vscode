@@ -26,6 +26,7 @@ export async function main(): Promise<void> {
   const installed = process.env.XENON_TEST_INSTALLED === "1";
   const installedEnvironment = installed ? await installVsix(testRoot) : undefined;
   const allScenarios = [
+    await createUsingScenario(testRoot, executable),
     await createAllocatorScenario(testRoot, executable),
     await createWorkspaceDiscoveryScenario(testRoot),
     await createProjectScenario(testRoot, executable),
@@ -70,6 +71,17 @@ export async function main(): Promise<void> {
           ]
     });
   }
+}
+
+async function createUsingScenario(testRoot: string, executable: string): Promise<Scenario> {
+  const root = join(testRoot, "UsingDeclarations");
+  const source = join(root, "src", "Main.xe");
+  await writeFiles({
+    [join(root, "UsingDeclarations.xeproj")]: projectFile("UsingDeclarations", "executable"),
+    [source]: await readFile(resolve("test", "fixtures", "using.xe"), "utf8"),
+    [join(root, ".vscode", "settings.json")]: JSON.stringify({ "xenon.executablePath": executable })
+  });
+  return { name: "using", openPath: root, paths: { root, source }, usePathResolution: false };
 }
 
 async function createAllocatorScenario(testRoot: string, executable: string): Promise<Scenario> {

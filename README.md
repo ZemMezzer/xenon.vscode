@@ -15,6 +15,7 @@ The installed extension does not require a separate Node.js, npm, TypeScript, or
 
 - Lexical and semantic syntax highlighting.
 - Local type inference with `var`: declaration-keyword highlighting and `var` / `readonly var` snippets. With a Xenon compiler that supports `var`, the language server provides keyword completion, inferred-type hover and declaration diagnostics. An initializer is required; `var` is valid only for locals and is not a type.
+- Local `using` declarations: highlighting and `using`, `usingptr`, `usingarray`, and `usingalloc` snippets for automatic raw-pointer and heap-array cleanup. Requires a Xenon compiler with `using` declaration support; hover, navigation, rename and diagnostics come from its Language Server.
 - User-defined `operator` declarations and contextual `implicit`/`explicit` highlighting; the current Language Server provides operator diagnostics, hover, definition and reference navigation, including selected conversion operators.
 - Concurrency syntax highlighting and Language Server intelligence for `atomic<T>`, `threadlocal`, atomic exchange (`<->`), and compare-exchange (`value : expected --> desired`).
 - Explicit `move` and `lock` expressions plus `unique<T>`, `shared<T>`, and `weak<T>` ownership-type highlighting; the current Xenon Language Server reports local/parameter/`this`-field use-after-move, stable interprocedural receiver-field effects, hidden interface/virtual effects, known-alias invalidation, restoration, escaping local reference returns, destructor restrictions, generic copyability, weak-access safety, and ownership-aware copy/destruction behavior.
@@ -30,6 +31,22 @@ The installed extension does not require a separate Node.js, npm, TypeScript, or
 - Live synchronization of `.xe`, `.xeproj`, and `.xws` changes.
 
 Semantic editor intelligence comes from `xenon lsp`; the extension does not duplicate compiler or project-system logic.
+
+### Using declarations
+
+```xenon
+void Example() {
+    using var resource = new Resource();
+    using Resource* other = new Resource();
+    using Resource third = new Resource(); // shorthand for Resource*
+    using var values = new int[4];
+    resource->Value = 42;
+}
+```
+
+A `using` declaration requires an initializer and makes the local binding readonly; the pointee remains mutable. Successfully initialized resources are deleted in reverse declaration order on scope exit, including `return`, `break`, `continue` and exceptions. An `await` suspension keeps the resource alive until the async scope exits. Cleanup uses ordinary `delete` semantics, including destructors and the original custom allocator.
+
+Declare an allocator provider before resources that depend on it, so it is released last. Raw aliases retain their usual unsafe lifetime semantics; manually deleting a `using` resource does not cancel its automatic cleanup. Namespace imports such as `using Core;` remain supported.
 
 ### Native allocators
 

@@ -208,7 +208,7 @@
           "match": "\\boperator\\b"
         },
         {
-          "name": "storage.modifier.declaration.import.xenon",
+          "name": "storage.modifier.declaration.using.xenon",
           "match": "\\busing\\b"
         },
         {
